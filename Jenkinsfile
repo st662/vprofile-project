@@ -1,18 +1,19 @@
 pipeline {
     
 	agent any
-/*	
+	
 	tools {
+	jdk "OracleJDK11"
         maven "maven3"
     }
-*/	
+	
     environment {
         NEXUS_VERSION = "nexus3"
         NEXUS_PROTOCOL = "http"
-        NEXUS_URL = "172.31.40.209:8081"
+        NEXUS_URL = "172.31.95.18:8081"
         NEXUS_REPOSITORY = "vprofile-release"
-	NEXUS_REPOGRP_ID    = "vprofile-grp-repo"
-        NEXUS_CREDENTIAL_ID = "nexuslogin"
+	NEXUS_REPOGRP_ID    = "vpro-maven-group"
+        NEXUS_CREDENTIAL_ID = "nexus-token"
         ARTVERSION = "${env.BUILD_ID}"
     }
 	
@@ -56,13 +57,13 @@ pipeline {
         stage('CODE ANALYSIS with SONARQUBE') {
           
 		  environment {
-             scannerHome = tool 'sonarscanner4'
+             scannerHome = tool 'sonarscanner'
           }
 
           steps {
-            withSonarQubeEnv('sonar-pro') {
-               sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
-                   -Dsonar.projectName=vprofile-repo \
+            withSonarQubeEnv('sonarserver') {
+               sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile1 \
+                   -Dsonar.projectName=vprofile-repo1 \
                    -Dsonar.projectVersion=1.0 \
                    -Dsonar.sources=src/ \
                    -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
@@ -71,7 +72,7 @@ pipeline {
                    -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml'''
             }
 
-            timeout(time: 10, unit: 'MINUTES') {
+            timeout(time: 2, unit: 'MINUTES') {
                waitForQualityGate abortPipeline: true
             }
           }
